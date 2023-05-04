@@ -1,45 +1,62 @@
 import './App.css';
-import { useSelector, useDispatch, connect } from 'react-redux'
-import { clearData, fetchData, incrementId, decrementId, inputId } from './features/dataSlice'
 import { useEffect } from 'react';
+import { useSelector, useDispatch, connect } from 'react-redux';
+import {
+  reset,
+  fetchData,
+  nextImage,
+  prevImage,
+  setArtId
+} from './features/dataSlice';
 
-function App(props) {
-  const dispatch = useDispatch()
-  const data = useSelector((state) => state.data)
 
-  const renderImg = () => {
-    if(data.apiData) {
-      return <img style={{'width': '100vw'}} src={data.apiData.primaryImage} alt={data.apiData.title} />
-    } else {
-      return <p>image here</p>
-    }
-  }
+const mapStateToProps = state => {
+  return state.data;
+};
 
+
+function App({artId, isLoggedIn}) {
+  const dispatch = useDispatch();
+  const currentState = useSelector((state) => state.data);
   useEffect(() => {
-    dispatch(fetchData())
-  }, [props.objectId, dispatch])
+    dispatch(fetchData());
+  }, [artId, dispatch])
 
 
+  const renderImage = () => {
+    return currentState.apiData ?
+      <img src={currentState.apiData.primaryImage} />
+      :
+      <h3>No Image Available</h3>
+
+  }
   return (
-    <div className="App">
-      <div>
-        <button onClick={() => dispatch(fetchData())}>Thunk!</button>
-        <button onClick={() => dispatch(clearData())}>Clear</button>
-        <button onClick={() => dispatch(incrementId())}>Next</button>
-        <button onClick={() => dispatch(decrementId())}>Back</button>
+    <div className='App' style={ { 'backgroundColor': isLoggedIn ? 'red' : 'yellow'}}>
+      <div className='button-container'>
+        <button onClick={
+          () => dispatch(fetchData())
+        }>Trigger Thunk</button>
+        <button onClick={
+          () => dispatch(reset())
+        }>Reset</button>
+        <button onClick={
+          () => dispatch(nextImage())
+        }>Next Image</button>
+
+        <button onClick={
+          () => dispatch(prevImage())
+        }>Back Thunk</button>
       </div>
-      <input value={ data.objectId } onChange={(e) => {
-        dispatch(inputId(Number(e.target.value)))
-      }} />
-      <div>
-        {data.objectId}
-        {renderImg()}
+      <div className='input-controls'></div>
+          <h1>{ currentState.artId}</h1>
+          <input type='text' value={currentState.artId} onChange={e => dispatch(setArtId(e.target.value))}/>
+      <div className='image-container'>
+        {
+          renderImage()
+        }
       </div>
     </div>
-  );
+  )
 }
-
-
-const mapStateToProps = (state, ownProps) => ({ objectId: state.data.objectId })
 
 export default connect(mapStateToProps)(App);
